@@ -7,8 +7,10 @@
 #include <getopt.h>
 
 //create  processtable for shared memory
+//sec  to store sceconds an nanoSec - to store nanseconds 
 typedef struct {
-
+    time_t sec;
+    long nanoSec;
 }PCB;
 
 
@@ -31,7 +33,7 @@ int main(int argc, char **argv){
         return EXIT_FAILURE;
     }
     
-    //
+    //initailize sec amd nanoSec 
     
     
     
