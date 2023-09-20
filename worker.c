@@ -54,20 +54,25 @@ int main(int argc, char *argv[]){
         exit(1);
     }
 
+    int termSec = sec_from_oss + clockData->startSec;
+    int termNano = nanosec_from_oss + clockData->startNano;
+    if(termNano>1000000000){
+        termNano -= 1000000000;
+        termSec += 1;
+    }
     
   
-   /* 
+    
     pid_t pid = getpid();
     pid_t ppid = getppid();
 
-    for(int i=0; i<iter; i++){
-    printf("worker PID:%d PPID:%d iterations:%d before sleeping\n\n",pid, ppid, i+1);
+   // for(int i=0; i<iter; i++){
+    printf("worker PID:%d PPID:%d  TermTimeS: %d TermTimeNano: %d \n\n",pid, ppid,termSec, termNano);
+    printf("                       SysClockS:%d  SysclockNano:%d",clockData->startSec, clockData->startNano);
 
-    sleep(1);
-
-    printf("worker PID:%d PPID:%d iterations:%d after sleeping\n",pid, ppid, i+1);
-    }
-    */
+    
+  //  }
+    
     
     return EXIT_SUCCESS;
 } 
