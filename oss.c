@@ -6,13 +6,9 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <time.h>
+#include "data_share.h"
 
-//create  processtable for shared memory
-//sec  to store sceconds an nanoSec - to store nanseconds 
-typedef struct {
-    time_t sec;
-    long nanoSec;
-}PCB;
+
 
 int main(int argc, char **argv){
     /*parse options and recieve command line arguments.
@@ -66,7 +62,11 @@ int main(int argc, char **argv){
 
      // ********** shared memory *******
      //generate unique key - ftok
-    key_t key_clock = ftok("key_clock", 4760);
+    key_t key_clock = ftok("oss.c", 4760);
+    if(key_clock == -1){
+        perror("ftok");
+        exit(EXIT_FAILURE);
+    }
 
     //returns an identifier in shmid- shmget
     int shm_clock = shmget(key_clock, sizeof(PCB),0666|IPC_CREAT);
@@ -82,16 +82,21 @@ int main(int argc, char **argv){
         return EXIT_FAILURE;
     }
 
-    //initailize sec amd nanoSec and set to zero in shared memory
-    clockData->sec = 0;
-    clockData->nanoSec = 0;
+    //initialize sec and nanosec to zero in shared memory
+    clockData->startSec = 0;
+    clockData->startNano = 0;
 
+    //increment 
     
-    
+
+    printf("from shared memory\n");
+    for(int i=0; i<20; i++){
+        printf("sec %d and nano %d\n",clockData->startSec, clockData->startNano); 
+    }
 
 
     // get random number between 1 and t for seconds and nano seconds to pass to worker
-    srand(time(0));
+  //  srand(time(0));
     
     int sec_worker = (rand()%(t-1)) + 1;
     int nanoSec_worker = (rand()%1000000000) +1;
@@ -114,7 +119,7 @@ int main(int argc, char **argv){
        if(simul_counter < s){
             
             printf("simul is %d and children %d\n\n",simul_counter+1, tot_chldrn+1);*/
-            
+         /*  
             pid_t childPid = fork(); // This is where the child process splits from the parent
             
 
