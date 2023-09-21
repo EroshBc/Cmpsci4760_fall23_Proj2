@@ -10,7 +10,9 @@
 
 int main(int argc, char *argv[]){
 
+    
     // ********** shared memory *******
+
      //generate unique key - ftok
     key_t key_clock = ftok("oss.c", 4760);
     if(key_clock == -1){
@@ -19,59 +21,67 @@ int main(int argc, char *argv[]){
     }
 
     //returns an identifier in shmid- shmget
-    int shm_clock = shmget(key_clock, sizeof(PCB),0666);
+    int shm_clock = shmget(key_clock, sizeof(Clocksys),0666|IPC_CREAT);
     if(shm_clock == -1){
         perror("shmget for clock");
         return EXIT_FAILURE;
     }
-    //Attch to the shared memory for the simulated system clock
-    PCB *clockData = (PCB *)shmat(shm_clock,NULL, 0);
 
-    if((void *) clockData == (void *) -1){
+
+    //Attch to the shared memory for the simulated system clock
+    Clocksys *clock = (Clocksys*)shmat(shm_clock,NULL, 0);
+
+    if((void *) clock == (void *) -1){
         perror("shmat for clock");
         return EXIT_FAILURE;
     }
 
-
-    //take not more than two input if not error message
-    printf("Now in worker\n");
-
-
-    printf("Reading from oss Sec %d and nanoSec %d\n",clockData->startSec, clockData->startNano);
-    
-    //sec and nano secs form oss files and 
-    int sec_from_oss = 0;
-    int nanosec_from_oss = 0;
-    
-
-    sec_from_oss = atoi(argv[1]);
-    nanosec_from_oss = atoi(argv[2]);
-    printf("pass from t \n");
-    printf("%d   %d\n",sec_from_oss, nanosec_from_oss);
+    //get the time from excl
+    int sec_from_oss = atoi(argv[1]);
+    long nanosec_from_oss = atol(argv[2]);
 
     if (argc != 3){
         fprintf(stderr,"Usage: %s seconds and nanoSeconds\n",argv[0]);
         exit(1);
     }
 
-    int termSec = sec_from_oss + clockData->startSec;
-    int termNano = nanosec_from_oss + clockData->startNano;
+    pid_t pid = getpid();
+    pid_t ppid = getppid();
+
+    //calculate the the termainate to be seconds and nanoseconds
+    int termSec = sec_from_oss + clock->sec;
+    long termNano = nanosec_from_oss + clock->nanoSec;
     if(termNano>1000000000){
         termNano -= 1000000000;
         termSec += 1;
     }
-    
-  
-    
-    pid_t pid = getpid();
-    pid_t ppid = getppid();
 
-   // for(int i=0; i<iter; i++){
-    printf("worker PID:%d PPID:%d  TermTimeS: %d TermTimeNano: %d \n\n",pid, ppid,termSec, termNano);
-    printf("                       SysClockS:%d  SysclockNano:%d",clockData->startSec, clockData->startNano);
-
+    printf("worker \n\n");
+    //starting point 
+    printf("worker PID:%d PPID:%d  \n",pid, ppid);
+    printf("SysClockS:%d  SysclockNan:%ld  TermTimeS: %d TermTimeNano: %ld\n",clock->sec,clock->nanoSec,termSec, termNano);
+    printf("--Just starting\n\n");
     
-  //  }
+/*
+    while(1){
+        int count = 0;
+        int termSec = sec_from_oss + clockData->startSec;
+        long termNano = nanosec_from_oss + clockData->startNano;
+        if(termNano>1000000000){
+         termNano -= 1000000000;
+         termSec += 1;
+        }
+
+        if(clockData->startSec > termSec || clockData->startSec > termSec && clockData->startNano >= termNano){
+            printf("target time completed\n");
+            exit(EXIT_SUCCESS);
+        }
+        //printf("count %d",count);
+
+        count += 1;
+    }
+       // usleep(100000);
+    */
     
     
     return EXIT_SUCCESS;
