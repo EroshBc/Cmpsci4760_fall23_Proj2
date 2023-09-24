@@ -10,6 +10,7 @@
 
 int main(int argc, char *argv[]){
 
+    printf("***** Now at worker***\n");
     
     // ********** shared memory *******
 
@@ -50,39 +51,51 @@ int main(int argc, char *argv[]){
 
     //calculate the the termainate to be seconds and nanoseconds
     int termSec = sec_from_oss + clock->sec;
+
     long termNano = nanosec_from_oss + clock->nanoSec;
     if(termNano>1000000000){
         termNano -= 1000000000;
         termSec += 1;
     }
 
-    printf("worker \n\n");
+
     //starting point 
     printf("worker PID:%d PPID:%d  \n",pid, ppid);
     printf("SysClockS:%d  SysclockNan:%ld  TermTimeS: %d TermTimeNano: %ld\n",clock->sec,clock->nanoSec,termSec, termNano);
     printf("--Just starting\n\n");
     
-/*
-    while(1){
-        int count = 0;
-        int termSec = sec_from_oss + clockData->startSec;
-        long termNano = nanosec_from_oss + clockData->startNano;
+    sleep(1);
+    //while(1){
+        
+        int previous_Seconds = clock->sec;
+        
+        //calculate ter
+         termSec = sec_from_oss + clock->sec;
+         termNano = nanosec_from_oss + clock->nanoSec;
+
         if(termNano>1000000000){
          termNano -= 1000000000;
          termSec += 1;
         }
-
-        if(clockData->startSec > termSec || clockData->startSec > termSec && clockData->startNano >= termNano){
+       
+        
+        if(clock->sec > termSec || clock->sec > termSec && clock->nanoSec >= termNano ){
             printf("target time completed\n");
+            printf("SysClockS:%d  SysclockNan:%ld  TermTimeS: %d TermTimeNano: %ld\n",clock->sec,clock->nanoSec,termSec, termNano);
+            printf("--seconds have passed from the start\n\n");
             exit(EXIT_SUCCESS);
         }
-        //printf("count %d",count);
 
-        count += 1;
-    }
-       // usleep(100000);
-    */
+        /*if(clock->sec > previous_Seconds ){
+            printf("Second has changed\n");
+            previous_Seconds = clock->sec;
+        }*/
+       
+        
+    //}
+        
     
+    printf("**** Now exitting from worker\n");
     
     return EXIT_SUCCESS;
 } 

@@ -5,47 +5,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include "data_share.h"
 
-//create  processtable for shared memory
-//sec  to store sceconds an nanoSec - to store nanseconds 
-typedef struct {
-    time_t sec;
-    long nanoSec;
-}PCB;
 
 
 int main(int argc, char **argv){
     
-    //generate unique key - ftok
-    key_t key_clock = ftok("key_clock", 4760);
+    // ********** shared memory *******
+     //generate unique key - ftok
+    key_t key_clock = ftok("oss.c", 4760);
+    if(key_clock == -1){
+        perror("ftok");
+        exit(EXIT_FAILURE);
+    }
 
     //returns an identifier in shmid- shmget
-    int shm_clock = shmget(key_clock, sizeof(PCB),0666|IPC_CREAT);
+    int shm_clock = shmget(key_clock, sizeof(Clocksys),0666|IPC_CREAT);
     if(shm_clock == -1){
         perror("shmget for clock");
         return EXIT_FAILURE;
     }
-    //Attch to the shared memory for the simulated system clock
-    PCB *clockData = (PCB *)shmat(shm_clock,NULL, 0);
 
-    if((void *) clockData == (void *) -1){
+
+    //Attch to the shared memory for the simulated system clock
+    Clocksys *clock = (Clocksys*)shmat(shm_clock,NULL, 0);
+
+    if((void *) clock == (void *) -1){
         perror("shmat for clock");
         return EXIT_FAILURE;
     }
-    
 
-    
-    //initailize sec amd nanoSec and set to zero in shared memory
-    clockData->sec = 0;
-    clockData->nanoSec = 0;
+    //initialize sec and nanosec to zero in shared memory
+    clock->sec = 0;
+    clock->nanoSec = 0;
 
-    
-
-
-    
-    //deattach the shared memeory
-
-    //free the memory 
+    printf("**** Time in share memory **** \n");
+    printf("Sec %d and NanoSeconds %ld\n",clock.);
     
     return 0;
 
