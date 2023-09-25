@@ -56,7 +56,7 @@ void printProcessTable() {
 }
 
 
-void checkIfChildHasTerminated(Clocksys *clock12316U) {
+void checkIfChildHasTerminated(Clocksys *clock) {
     int pid, status;
     
     do{
@@ -120,6 +120,7 @@ int main(int argc, char **argv){
     int t=0;
     int increment = 100000;  // increment clock my 1 millisecond
     int stillChildrenToLaunch = 1;
+    int childHasTerminated = 0;
     
 	while((opt_val = getopt(argc, argv, "hn:s:t:")) != -1){ // getopt() function take arguments -n, -s ,-t
 		switch (opt_val){
@@ -197,7 +198,7 @@ int main(int argc, char **argv){
 
     
     int previousNano = 0;
-    int x =10;
+   // int x =10;
 
     while(stillChildrenToLaunch){
 
@@ -216,11 +217,19 @@ int main(int argc, char **argv){
             int previousNano = clock->nanoSec;
         }
 
-        x--;
-        if(x<2){
+        checkIfChildHasTerminated(clock);
 
-            stillChildrenToLaunch = 0;
+        //update PCB of terminated child
+        if(childHasTerminated){
+            updatePCBOfTerminatedChild(getpid());
+
         }
+
+      //  x--;
+      //  if(x<2){
+
+         //   stillChildrenToLaunch = 0;
+      //  }
     }
 
 
@@ -263,6 +272,8 @@ int main(int argc, char **argv){
     }
     
 
+    }else{
+        stillChildrenToLaunch == 0 ;
     }
 
      //Detach shared memory segment from process address space
