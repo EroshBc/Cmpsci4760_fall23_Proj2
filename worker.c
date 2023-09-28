@@ -38,8 +38,6 @@ int main(int argc, char *argv[]){
     }
     // ***** end shared memory creating *****
 
-    printf("now at worker\n\n");
-    printf("simulated clock Sec %d and nanoSec %ld\n",clock->sec, clock->nanoSec);
     
     if (argc != 3){
         fprintf(stderr,"Usage: %s seconds and nanoSeconds\n",argv[0]);

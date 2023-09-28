@@ -53,12 +53,30 @@ void addToProcessTable(pid_t pid, int startSeconds, int startNano) {
     }
 }
 
+void updatePCBOfTerminatedChild(int terminated_pid) {
+    // Update process table entry for terminated child
+    int i;
+    for (i = 0; i < 20; i++) {
+        if (processTable[i].occupied && processTable[i].pid == terminated_pid) {
+            //Update the the PCB for terminated fields
+            processTable[i].occupied = 0;
+            processTable[i].pid = 0;
+            processTable[i].startSec = 0;
+            processTable[i].startNano = 0;
+            break;
+        }
+    }
+    
+}
+
 
 int main(){
-
+    int stillChildrenToLaunch = 1;
+    int previousNano = 0;
+    int increment = 1000000000/2;
     
     /*create simualted clock in shared memory */
-    printf("Now at share memory\n");
+    
 
     // ***** shared memory *******
     key_t key = ftok("oss.c", 12316);
@@ -97,13 +115,10 @@ int main(){
 
     
         
-    int stillChildrenToLaunch = 1;
-    int i = 1;
-    int previousNano = 0;
-    int increment = (1000000000/2) + 100000;
+    
 
     while(stillChildrenToLaunch){
-        i++;
+        
         incremntClock(increment, clock);
         printf("OSS PID:%d SysClockS:%d SysclockNano : %ld\n",getpid(),clock->sec,clock->nanoSec);
 
@@ -113,21 +128,24 @@ int main(){
         
         if((clock->nanoSec - previousNano == 1) % 500000 == 0){
 
-           // printf("OSS PID:%d SysClockS:%d SysclockNano : %ld\n",getpid(),clock->sec,clock->nanoSec);
-
             printProcessTable();
             int previousNano = clock->nanoSec;
         }
 
-    
-        if(i > 10){
-            stillChildrenToLaunch = 0;
+        int pid, status;
+        pid = waitpid(-1, &status, WNOHANG);
+
+        if(pid > 0){
+            updatePCBOfTerminatedChild(pid);
+        }else{
+        stillChildrenToLaunch = 0;
         }
     }
 
     // get random number between 1 and t for seconds and nano seconds to pass to worker
        
     int t = 3;
+
     srand(time(0));
     int sec_worker = (rand()%(t-1)) + 1;
     long nanoSec_worker = (rand()%1000000000) +1;
@@ -162,7 +180,7 @@ int main(){
         }
 
     }
-    /*
+    
     //detached shared memory
     if (shmdt(clock) == -1) {
             perror("shmdt");
@@ -174,7 +192,7 @@ int main(){
     
         perror("shmctl");
         exit(EXIT_FAILURE);
-    } */
+    } 
 
     return 0;
 }
