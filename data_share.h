@@ -1,4 +1,4 @@
-#ifndef DATA_SHARE_H
+#ifndef Data_SHARE_H
 #define DATA_SHARE_H
 
 typedef struct {
@@ -7,6 +7,7 @@ typedef struct {
 }Clocksys;
 
 
-
-
 #endif
+
+
+
